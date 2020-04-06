@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Color picker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script
+      src="https://kit.fontawesome.com/2dac4a616a.js"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
+    <style>
+      .dropbtn {
+        color: grey;
+        padding: 16px;
+        font-size: 16px;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        min-width: 150px;
+        border: 1px solid #e0e0e0;
+        outline: none;
+      }
+
+      .dropbtn .fa-sort-down:before {
+        margin-top: -2px;
+        margin-left: 10px;
+        display: flex;
+        color: grey;
+      }
+
+      #dropdown {
+        position: relative;
+        display: inline-block;
+      }
+
+      .dropdown-content {
+        position: absolute;
+        box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .box {
+        height: 47px;
+        min-width: 179px;
+        text-align: center;
+        padding-top: 28px;
+        color: grey;
+      }
+
+      .blue {
+        background-color: #dbeeeb;
+        border: 1px solid #cbdcd9;
+      }
+
+      .violet {
+        background-color: #e9ebeb;
+        border: 1px solid #d7dcdc;
+      }
+
+      .white {
+        background-color: #ffffff;
+        border: 1px solid #e0e0e0;
+      }
+
+      .grey {
+        background-color: #d3d9d6;
+        border: 1px solid #c6ccc9;
+      }
+
+      .yellow {
+        background-color: #f9edbf;
+        border: 1px solid #e8ddb3;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="dropdown">
+      <button
+        @click="dropdown()"
+        :style="{'backgroundColor': currentColor}"
+        class="dropbtn"
+      >
+        Background color<i class="fas fa-sort-down"></i>
+      </button>
+      <ul v-if="open" class="dropdown-content">
+        <li
+          @click="chooseColor(color)"
+          v-for="color in colors"
+          :style="{'backgroundColor': color}"
+          class="box"
+        >
+          {{ color }}
+        </li>
+      </ul>
+      {{ currentColor }}
+    </div>
+
+    <script src="https://unpkg.com/dc-extensions-sdk/dist/dc-extensions-sdk.umd.js"></script>
+    <script type="module">
+      import Vue from "https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.esm.browser.js";
+
+      var app = new Vue({
+        created() {
+          dcExtensionsSdk
+            .init()
+            .then(data => {
+              this.sdk = data;
+              console.log("sdk", data);
+            })
+            .then(() => {
+              this.setCurrentColor().finally(() => {
+                this.initializeDropDown();
+                this.sdk.frame.startAutoResizer();
+              });
+
+              this.dropDownItem = document.querySelector(".box");
+            })
+            .catch(err => console.log("error", err));
+        },
+        el: "#dropdown",
+        data: {
+          open: false,
+          colors: ["#DBEEEB", "#E9EBEB", "#FFFFFF", "#D3D9D6", "#F9EDBF"],
+          currentColor: "#FFFFFF",
+          sdk: {}
+        },
+        methods: {
+          dropdown() {
+            this.open = !this.open;
+          },
+          chooseColor(color) {
+            this.currentColor = color;
+            this.updateFieldValue(color);
+            this.open = false;
+          },
+          async updateFieldValue(color) {
+            try {
+              await this.sdk.field.setValue(color);
+            } catch (err) {
+              console.log(err.message);
+            }
+          },
+          async setCurrentColor() {
+            try {
+              this.currentColor = await this.sdk.field.getValue();
+            } catch (err) {
+              console.log(err);
+            }
+          },
+          initializeDropDown() {
+            if (this.currentColor !== "#FFFFFF") {
+              this.dropDownItem.style.backgroundColor = this.currentColor;
+            }
+            this.currentColor = this.dropDownItem.style.backgroundColor;
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
