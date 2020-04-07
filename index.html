@@ -11,94 +11,110 @@
     ></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
     <style>
-      .dropbtn {
-        color: grey;
-        padding: 16px;
-        font-size: 16px;
-        border: none;
-        cursor: pointer;
-        display: flex;
-        min-width: 150px;
-        border: 1px solid #e0e0e0;
-        outline: none;
+      #color-picker {
+        width: 270px;
       }
 
-      .dropbtn .fa-sort-down:before {
-        margin-top: -2px;
-        margin-left: 10px;
-        display: flex;
-        color: grey;
-      }
-
-      #dropdown {
-        position: relative;
-        display: inline-block;
-      }
-
-      .dropdown-content {
-        position: absolute;
-        box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-        z-index: 1;
-        list-style: none;
-        padding: 0;
+      p {
         margin: 0;
       }
 
-      .box {
-        height: 47px;
-        min-width: 179px;
-        text-align: center;
-        padding-top: 28px;
-        color: grey;
+      .summary-info {
+        align-items: center;
+        box-shadow: 0 7px 13px 0 rgba(86, 95, 102, 0.07);
+        background: #fff;
+        max-width: 270px;
+        padding: 15px;
+        border-radius: 5px;
+        display: flex;
+        box-sizing: border-box;
       }
 
-      .blue {
-        background-color: #dbeeeb;
-        border: 1px solid #cbdcd9;
+      .info {
+        width: calc(100% - 40px);
       }
 
-      .violet {
-        background-color: #e9ebeb;
-        border: 1px solid #d7dcdc;
+      .bg-header {
+        color: #000;
+        margin-bottom: 5px;
       }
 
-      .white {
-        background-color: #ffffff;
-        border: 1px solid #e0e0e0;
+      .bg-value {
+        color: #595b65;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        font-size: 10px;
       }
 
-      .grey {
-        background-color: #d3d9d6;
-        border: 1px solid #c6ccc9;
+      .circle {
+        height: 40px;
+        width: 40px;
+        flex: 40px;
+        margin-right: 10px;
+        margin-bottom: 10px;
+        box-sizing: border-box;
+        border-radius: 100%;
+        border: 1px solid #dadada;
+        box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.14);
       }
 
-      .yellow {
-        background-color: #f9edbf;
-        border: 1px solid #e8ddb3;
+      .info-circle {
+        margin: 0;
+      }
+
+      .circle:nth-child(5n) {
+        margin-right: 0;
+      }
+
+      .opened {
+        box-shadow: 0 7px 13px 0 rgba(86, 95, 102, 0.07);
+        background: #fff;
+        max-width: 270px;
+        padding: 15px;
+        border-radius: 5px;
+        position: relative;
+        box-sizing: border-box;
+        margin-top: 15px;
+      }
+
+      .opened:after {
+        border: 10px solid transparent;
+        border-bottom: 10px solid #fff;
+        content: "";
+        right: 10px;
+        position: absolute;
+        top: -20px;
+      }
+
+      .colors {
+        display: flex;
+        flex-wrap: wrap;
       }
     </style>
   </head>
 
   <body>
-    <div id="dropdown">
-      <button
-        @click="dropdown()"
-        :style="{'backgroundColor': currentColor}"
-        class="dropbtn"
-      >
-        Background color<i class="fas fa-sort-down"></i>
-      </button>
-      <ul v-if="open" class="dropdown-content">
-        <li
-          @click="chooseColor(color)"
-          v-for="color in colors"
-          :style="{'backgroundColor': color}"
-          class="box"
-        >
-          {{ color }}
-        </li>
-      </ul>
-      {{ currentColor }}
+    <div id="color-picker">
+      <div class="summary-info">
+        <div class="info">
+          <p class="bg-header">Background</p>
+          <p class="bg-value">{{ currentColor }}</p>
+        </div>
+        <div
+          class="circle info-circle"
+          :style="{'backgroundColor': currentColor}"
+        ></div>
+      </div>
+      <div class="opened">
+        <div class="colors">
+          <div
+            @click="chooseColor(color)"
+            v-for="color in colors"
+            :style="{'backgroundColor': color}"
+            class="circle"
+          ></div>
+        </div>
+      </div>
     </div>
 
     <script src="https://unpkg.com/dc-extensions-sdk/dist/dc-extensions-sdk.umd.js"></script>
@@ -109,31 +125,24 @@
         created() {
           dcExtensionsSdk
             .init()
-            .then(data => {
+            .then((data) => {
               this.sdk = data;
-              console.log("sdk", data);
             })
             .then(() => {
               this.setCurrentColor().finally(() => {
-                this.initializeDropDown();
                 this.sdk.frame.startAutoResizer();
               });
-
-              this.dropDownItem = document.querySelector(".box");
             })
-            .catch(err => console.log("error", err));
+            .catch((err) => console.log("error", err));
         },
-        el: "#dropdown",
+        el: "#color-picker",
         data: {
           open: false,
-          colors: ["#DBEEEB", "#E9EBEB", "#FFFFFF", "#D3D9D6", "#F9EDBF"],
+          colors: ["#FFFFFF", "#E9EBEB", "#DBEEEB", "#F9EDBF", "#D3D9D6"],
           currentColor: "#FFFFFF",
-          sdk: {}
+          sdk: {},
         },
         methods: {
-          dropdown() {
-            this.open = !this.open;
-          },
           chooseColor(color) {
             this.currentColor = color;
             this.updateFieldValue(color);
@@ -153,13 +162,7 @@
               console.log(err);
             }
           },
-          initializeDropDown() {
-            if (this.currentColor !== "#FFFFFF") {
-              this.dropDownItem.style.backgroundColor = this.currentColor;
-            }
-            this.currentColor = this.dropDownItem.style.backgroundColor;
-          }
-        }
+        },
       });
     </script>
   </body>
